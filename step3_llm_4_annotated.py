@@ -448,4 +448,6 @@ with gr.Blocks(theme=gr.themes.Glass()) as app:
     )
 
 if __name__ == "__main__":
-    app.launch(debug=True, share=False)
+    # app.launch(debug=True, share=False) # Commented out for importability
+    print("step3_llm_4_annotated.py can now be imported as a module.")
+    print("To run its original Gradio app, uncomment 'app.launch(debug=True, share=False)' and run this script directly.")

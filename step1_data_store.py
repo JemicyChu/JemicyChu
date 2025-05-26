@@ -3,7 +3,12 @@ import logging
 import json
 from datetime import datetime
 import pprint
-import os # Added os for os.path.join if needed, though not explicitly in target for this step
+import os
+from pathlib import Path # Added Path
+import time # Added time
+import io # Added io
+import zipfile # Added zipfile
+
 from model import Record, SelectionDetails, DeviceAndAppEnvironment, NodeData, ImageUrls # Assuming model.py is in the same directory or accessible
 from AndroidDevice import AndroidPage, upload_file # Assuming AndroidDevice.py is accessible
 
@@ -275,6 +280,68 @@ class AndroidGradioApp:
             pprint.pprint(f"Exception details: {e}")
             return f"Error saving data: {str(e)}"
 
+    async def export_data_locally_for_handoff(self) -> tuple[Optional[str], str]:
+        """
+        Collects all data saved in the 'collected_data' directory,
+        the current device config, and the last screenshot, zips them,
+        and saves the zip locally for handoff.
+        Returns the absolute path to the zip file and a status message.
+        """
+        logging.info("Starting local data export for handoff...")
+        
+        handoff_base_dir = Path("main_app_outputs") / "step1_exports"
+        handoff_base_dir.mkdir(parents=True, exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_filename = f"step1_output_{timestamp}.zip"
+        zip_filepath = handoff_base_dir / zip_filename
+        
+        collected_data_dir = Path("collected_data") # Directory where individual records are saved
+
+        try:
+            with zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED) as zf:
+                # 1. Add device configuration info
+                if self.device_config_info:
+                    device_config_str = json.dumps(self.device_config_info, indent=4)
+                    zf.writestr("device_config.json", device_config_str)
+                    logging.info("Added device_config.json to zip.")
+                else:
+                    logging.warning("No device_config_info to add to zip.")
+
+                # 2. Add all JSON records from 'collected_data' directory
+                if collected_data_dir.exists() and collected_data_dir.is_dir():
+                    json_files_added = 0
+                    for json_file in collected_data_dir.glob("record_*.json"):
+                        if json_file.is_file():
+                            zf.write(json_file, arcname=json_file.name)
+                            json_files_added += 1
+                    logging.info(f"Added {json_files_added} JSON record(s) from {collected_data_dir} to zip.")
+                else:
+                    logging.warning(f"Directory {collected_data_dir} not found or is not a directory. No records added.")
+
+                # 3. Add the last captured screenshot, if available
+                if self.current_screenshot_path and Path(self.current_screenshot_path).exists():
+                    screenshot_file = Path(self.current_screenshot_path)
+                    zf.write(screenshot_file, arcname=f"screenshots/{screenshot_file.name}") # Store in a folder in zip
+                    logging.info(f"Added screenshot {screenshot_file.name} to zip.")
+                else:
+                    logging.warning("No current_screenshot_path available or file does not exist.")
+                
+                # (Optional) Add current XML if needed
+                if self.current_xml_path and Path(self.current_xml_path).exists():
+                    xml_file = Path(self.current_xml_path)
+                    zf.write(xml_file, arcname=f"xml_layouts/{xml_file.name}")
+                    logging.info(f"Added XML layout {xml_file.name} to zip.")
+                
+            status_message = f"Data successfully exported to {zip_filepath.resolve()}"
+            logging.info(status_message)
+            return str(zip_filepath.resolve()), status_message
+
+        except Exception as e:
+            error_message = f"Error during local data export: {e}"
+            logging.error(error_message, exc_info=True)
+            return None, error_message
+
 app_instance = AndroidGradioApp()
 
 # Global wrapper for connect click
@@ -395,4 +462,6 @@ with gr.Blocks() as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(share=False)
+    # demo.launch(share=False) # Commented out for importability
+    print("step1_data_store.py can now be imported as a module.")
+    print("To run its original Gradio app, uncomment 'demo.launch(share=False)' and run this script directly.")

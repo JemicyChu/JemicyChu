@@ -348,32 +348,34 @@ def process_and_clean_dataset(uploaded_file_obj, output_filename_str):
         return "<br>".join(status_messages)
 
 if __name__ == '__main__':
-    BASE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True) # Ensure output dir exists
+    # BASE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True) # Ensure output dir exists
 
-    with gr.Blocks(theme=gr.themes.Soft()) as app_cleaner:
-        gr.Markdown("# Dataset Cleaning Service (Step 2)")
-        gr.Markdown("Upload a dataset (ZIP from Step 1, or a PKL/JSON/CSV file). The service will clean it and save the result in the `cleaned_datasets` directory.")
+    # with gr.Blocks(theme=gr.themes.Soft()) as app_cleaner:
+    #     gr.Markdown("# Dataset Cleaning Service (Step 2)")
+    #     gr.Markdown("Upload a dataset (ZIP from Step 1, or a PKL/JSON/CSV file). The service will clean it and save the result in the `cleaned_datasets` directory.")
         
-        with gr.Row():
-            input_file_gr = gr.File(label="Upload Dataset (ZIP, PKL, JSON, CSV)", type="filepath")
+    #     with gr.Row():
+    #         input_file_gr = gr.File(label="Upload Dataset (ZIP, PKL, JSON, CSV)", type="filepath")
         
-        output_filename_gr = gr.Textbox(
-            label="Output Filename for Cleaned Data (e.g., cleaned_data.pkl, my_output.json). Extension determines save type.", 
-            placeholder="e.g., cleaned_my_data.pkl",
-            value="cleaned_output.pkl" # Default value
-        )
+    #     output_filename_gr = gr.Textbox(
+    #         label="Output Filename for Cleaned Data (e.g., cleaned_data.pkl, my_output.json). Extension determines save type.", 
+    #         placeholder="e.g., cleaned_my_data.pkl",
+    #         value="cleaned_output.pkl" # Default value
+    #     )
         
-        run_button_gr = gr.Button("🧹 Run Cleaning and Save", variant="primary")
+    #     run_button_gr = gr.Button("🧹 Run Cleaning and Save", variant="primary")
         
-        gr.Markdown("---") # Separator
-        status_display_gr = gr.Markdown("### Status & Results") # Using Markdown for status
+    #     gr.Markdown("---") # Separator
+    #     status_display_gr = gr.Markdown("### Status & Results") # Using Markdown for status
 
-        run_button_gr.click(
-            fn=process_and_clean_dataset,
-            inputs=[input_file_gr, output_filename_gr],
-            outputs=[status_display_gr] 
-        )
+    #     run_button_gr.click(
+    #         fn=process_and_clean_dataset,
+    #         inputs=[input_file_gr, output_filename_gr],
+    #         outputs=[status_display_gr] 
+    #     )
 
-    app_cleaner.launch(debug=True, share=False) # Set share=False for local dev
+    # app_cleaner.launch(debug=True, share=False) # Commented out for importability
+    print("step2_data_filter.py can now be imported as a module.")
+    print("To run its original Gradio app, uncomment the relevant lines in if __name__ == '__main__': and run this script directly.")
 
 ```
